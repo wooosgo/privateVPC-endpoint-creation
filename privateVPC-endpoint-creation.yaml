@@ -10,6 +10,7 @@ Metadata:
           - pCidr
           - pInstanceType
           - pVpcId
+          - pPrivateSubnet
     ParameterLabels:
       pLatestAmiId:
         default: Systems Manager Parameter for AMI
@@ -19,6 +20,8 @@ Metadata:
         default: EC2 Instance Type
       pVpcId:
         default: VPC ID
+      pPrivateSubnet:
+        default: 
 Parameters:
   # Systems Manager Parameter is used to find the latest Amazon Linux 2 AMI ID
   # Amazon Linux 2 is preloaded with the SSM Agent
@@ -61,7 +64,7 @@ Resources:
       ServiceName: !Sub com.amazonaws.${AWS::Region}.ssm
       VpcId: !Ref pVpcId
       SubnetIds:
-        - !Ref rPrivateSubnet
+        - !Ref pPrivateSubnet
       SecurityGroupIds:
         - !Ref rSecurityGroupVpcEndpoint
       VpcEndpointType: Interface
@@ -72,7 +75,7 @@ Resources:
       ServiceName: !Sub com.amazonaws.${AWS::Region}.ssmmessages
       VpcId: !Ref pVpcId
       SubnetIds:
-        - !Ref rPrivateSubnet
+        - !Ref pPrivateSubnet
       SecurityGroupIds:
         - !Ref rSecurityGroupVpcEndpoint
       VpcEndpointType: Interface
@@ -83,7 +86,7 @@ Resources:
       ServiceName: !Sub com.amazonaws.${AWS::Region}.ec2messages
       VpcId: !Ref pVpcId
       SubnetIds:
-        - !Ref rPrivateSubnet
+        - !Ref pPrivateSubnet
       SecurityGroupIds:
         - !Ref rSecurityGroupVpcEndpoint
       VpcEndpointType: Interface
@@ -116,20 +119,20 @@ Resources:
     Properties:
       ImageId: !Ref pLatestAmiId
       InstanceType: !Ref pInstanceType
-      SubnetId: !Ref rPrivateSubnet
+      SubnetId: !Ref pPrivateSubnet
       IamInstanceProfile: !Ref rEc2InstanceProfile 
       SecurityGroupIds:
         - !Ref rSecurityGroupEc2Instance
-  rPrivateSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      CidrBlock: !Ref pCidr
-      MapPublicIpOnLaunch: false
-      VpcId: !Ref pVpcId
-  rPrivateRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref pVpcId
+  # pPrivateSubnet:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     CidrBlock: !Ref pCidr
+  #     MapPublicIpOnLaunch: false
+  #     VpcId: !Ref pVpcId
+  # rPrivateRouteTable:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     VpcId: !Ref pVpcId
   rSecurityGroupEc2Instance:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -163,8 +166,8 @@ Resources:
         FromPort: 443
         ToPort: 443
         IpProtocol: tcp
-  rPrivateSubnetRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref rPrivateRouteTable
-      SubnetId: !Ref rPrivateSubnet
+  # pPrivateSubnetRouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref rPrivateRouteTable
+  #     SubnetId: !Ref pPrivateSubnet
